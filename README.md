@@ -55,7 +55,7 @@ We suggest you don't spend more than 2h on this challenge.
 
 - `{note_1}`
 - `{note_2}`
-- `&hellip;`
+- `…`
 - `{note_n}`
 
 ## Customize configuration
