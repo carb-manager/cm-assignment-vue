@@ -24,7 +24,7 @@ The project consists of 2 main modules:
 
 The project contains some poor code. The challenge is to identify the bad parts and address the issues.
 
-- Focus on just one of the `/recipes` views.
+- Focus only on the `/recipes` view.
 - `energy` values should be converted based on `user.units.energy` settings. 
 - `energy` label should also respect `user.units.energy` settings.
 - Assume that all `Recipe.tags` and `Recipe.nutrients` properties are going to be localized based on `User.language`. Don't develop localization code. Just be prepared for it.
@@ -44,7 +44,7 @@ We don't expect you to write any code for a single recipe view, but we'd like yo
 - Feel free to contact us any time if you have any questions about the assignment!
 
 We're not aiming for perfection. We don't want you to spend too much time on the refactor.
-If a feature/change you'd like to implement is going take too much time just leave some notes in the code.
+If a feature/change you'd like to implement is going take too much time just leave your comments in the **Refactor notes** section below.
 Include the reason for the refactor and the proposed solution. Also, document all the changes you made e.g.:
 
 - *"Refactored `<Button>` component props to make it re-usable"*
