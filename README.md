@@ -53,10 +53,24 @@ We suggest you don't spend more than 2h on this challenge.
 
 ## Refactor notes
 
-- `{note_1}`
-- `{note_2}`
-- `…`
-- `{note_n}`
+- `Created SearchInput component`
+  -   defined a reactive data to bind to the input to enable two-way data binding
+  -   created a watcher for the search input value and emit the value to the parent component (RecipesView)
+  -   emitted the value only if the input value is truthy and is not empty
+
+
+
+- `Added vuex store to the app`
+  -   create getters, mutations and actions to fetch data from the api, save to the store and to serve the whole app for a better state management
+
+
+- `Refactored RecipesView`
+  -   Created a reusable generic search component
+  -   Made search results case-insensitive by putting the search value to lowercase as well as recipes list being searched
+  -   Added a loading state to the app
+  -   Displayed an empty state if no results available for the search
+  -   Better error management if app failed to fetch data
+  
 
 ## Submission
 
