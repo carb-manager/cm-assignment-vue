@@ -3,14 +3,16 @@
     <div class="nutrient-label" v-if="showLabel">
       {{ nutrientType }}
     </div>
-    <span> {{ nutrient.value }} </span>
+    <span>
+      {{ nutrient.display }}
+    </span>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
-import type { Nutrient, NutrientName } from "@/types/recipe";
+import type { NutrientDisplay, NutrientName } from "@/types/recipe";
 
 const nutrienTypeToClassMap: { [key in NutrientName]: string } = {
   carbs: "carbs",
@@ -23,11 +25,11 @@ export default defineComponent({
   props: {
     nutrient: {
       required: true,
-      type: Object as PropType<Nutrient>,
+      type: Object as PropType<NutrientDisplay>,
     },
     nutrientType: {
       required: true,
-      type: Object as PropType<NutrientName>,
+      type: String as PropType<NutrientName>,
     },
     showLabel: {
       type: Boolean,

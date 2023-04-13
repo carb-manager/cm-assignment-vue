@@ -15,34 +15,6 @@
           :nutrient-type="nutrientName"
           :show-label="showNutrientLabels"
         />
-        <!-- <NutrientItem
-          :name="showNutrientLabels ? 'Carbs' : null"
-          :value="nutrient.value + 'g'"
-          v-if="nutrient && nutrientName === 'carbs'"
-          class="carbs"
-        />
-        <NutrientItem
-          :name="showNutrientLabels ? 'Protein' : null"
-          :value="nutrient.value + 'g'"
-          v-if="nutrient && nutrientName === 'proteins'"
-          class="protein"
-        />
-        <NutrientItem
-          :name="showNutrientLabels ? 'Fat' : null"
-          :value="nutrient.value + 'g'"
-          v-if="nutrient && nutrientName === 'fats'"
-          class="fat"
-        />
-        <NutrientItem
-          v-if="nutrient && nutrientName === 'energy'"
-          :name="
-            showNutrientLabels
-              ? getEnergy(nutrient.unit, nutrient.value).label
-              : null
-          "
-          :value="round(getEnergy(nutrient.unit, nutrient.value).value)"
-          class="energy"
-        /> -->
       </template>
     </div>
     <div class="tags">
@@ -50,19 +22,18 @@
         <img class="trophy" src="../assets/trophy.svg" />
         Premium
       </div>
-      <div class="tag" v-for="tag in recipe.tags" :key="tag">
-        {{ tag }}
+      <div class="tag" v-for="tag in recipe.tags" :key="tag.key">
+        {{ tag.display }}
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 import type { PropType } from "vue";
 import NutrientItem from "@/components/NutrientItem.vue";
-import type { Recipe, Unit } from "@/types/recipe";
-import type { User } from "@/types/user";
+import type { RecipeDisplay } from "@/types/recipe";
 
 export default defineComponent({
   components: {
@@ -71,7 +42,7 @@ export default defineComponent({
   props: {
     recipe: {
       required: true,
-      type: Object as PropType<Recipe>,
+      type: Object as PropType<RecipeDisplay>,
     },
     showNutrientLabels: {
       type: Boolean,
@@ -79,43 +50,7 @@ export default defineComponent({
     },
   },
   setup() {
-    // TODO: we probably don't need the user here
-    const user = ref<User | null>(null);
-
-    const getEnergy = (recipeUnit: Unit, value: number) => {
-      let label;
-
-      if (recipeUnit !== user.value?.units.energy) {
-        if (recipeUnit === "kilojoule") {
-          label = "kCal";
-          value = value / 4.184;
-        } else {
-          label = "kJ";
-          value = value * 4.184;
-        }
-      } else {
-        if (recipeUnit === "kilojoule") {
-          label = "kJ";
-        } else {
-          label = "kCal";
-        }
-      }
-
-      return {
-        label,
-        value,
-      };
-    };
-
-    const round = (num: number, decimalPlaces = 2) => {
-      const p = Math.pow(10, decimalPlaces);
-      return Math.round(num * p) / p;
-    };
-
-    return {
-      getEnergy,
-      round,
-    };
+    return {};
   },
 });
 </script>
