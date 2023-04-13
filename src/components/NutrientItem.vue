@@ -1,25 +1,73 @@
 <template>
-  <div class="nutrient-item">
-    <div v-if="name">{{ name }}</div>
-    <span> {{ value }} </span>
+  <div class="nutrient-item" :class="nutrienTypeToClassMap[nutrientType] || ''">
+    <div class="nutrient-label" v-if="showLabel">
+      {{ nutrientType }}
+    </div>
+    <span> {{ nutrient.value }} </span>
   </div>
 </template>
 
-<script>
-export default {
-  props: ["name", "value"],
+<script lang="ts">
+import { defineComponent } from "vue";
+import type { PropType } from "vue";
+import type { Nutrient, NutrientName } from "@/types/recipe";
+
+const nutrienTypeToClassMap: { [key in NutrientName]: string } = {
+  carbs: "carbs",
+  proteins: "protein",
+  fats: "fat",
+  energy: "energy",
 };
+
+export default defineComponent({
+  props: {
+    nutrient: {
+      required: true,
+      type: Object as PropType<Nutrient>,
+    },
+    nutrientType: {
+      required: true,
+      type: Object as PropType<NutrientName>,
+    },
+    showLabel: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  setup() {
+    return {
+      nutrienTypeToClassMap,
+      name: "name",
+    };
+  },
+});
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .nutrient-item {
   text-align: right;
   min-width: 65px;
   font-weight: 500;
   color: #6f7379;
 
-  div {
+  .nutrient-label {
     font-size: 16px;
+  }
+
+  &.carbs span {
+    color: #eb5350;
+  }
+
+  &.fat span {
+    color: #ec9e31;
+  }
+
+  &.protein span {
+    color: #3b77b1;
+  }
+
+  &.energy span {
+    color: #282c37;
   }
 }
 </style>

@@ -7,7 +7,11 @@
       v-model="searchValue"
     />
     <div v-for="(recipe, index) in recipesList" :key="index" class="list">
-      <RecipeCard @click="goToSingleRecipe(recipe.id)" :recipe="recipe" />
+      <RecipeCard
+        @click="goToSingleRecipe(recipe.id)"
+        :recipe="recipe"
+        :show-nutrient-labels="index === 0"
+      />
     </div>
 
     <div v-if="error">

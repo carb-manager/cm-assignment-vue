@@ -10,6 +10,12 @@
         :key="nutrient.value"
       >
         <NutrientItem
+          v-if="nutrient"
+          :nutrient="nutrient"
+          :nutrient-type="nutrientName"
+          :show-label="showNutrientLabels"
+        />
+        <!-- <NutrientItem
           :name="showNutrientLabels ? 'Carbs' : null"
           :value="nutrient.value + 'g'"
           v-if="nutrient && nutrientName === 'carbs'"
@@ -36,7 +42,7 @@
           "
           :value="round(getEnergy(nutrient.unit, nutrient.value).value)"
           class="energy"
-        />
+        /> -->
       </template>
     </div>
     <div class="tags">
@@ -52,7 +58,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch } from "vue";
+import { defineComponent, ref } from "vue";
 import type { PropType } from "vue";
 import NutrientItem from "@/components/NutrientItem.vue";
 import type { Recipe, Unit } from "@/types/recipe";
@@ -127,24 +133,6 @@ export default defineComponent({
   color: #282c37;
   border-bottom: 1px solid #ebebeb;
   margin-bottom: 6px;
-
-  .nutrient-item {
-    &.carbs span {
-      color: #eb5350;
-    }
-
-    &.fat span {
-      color: #ec9e31;
-    }
-
-    &.protein span {
-      color: #3b77b1;
-    }
-
-    &.energy span {
-      color: #282c37;
-    }
-  }
 }
 
 .recipeImage {
