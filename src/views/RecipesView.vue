@@ -1,107 +1,101 @@
 <template>
   <div class="recipes">
-    <template v-if="!error">
-      <input
-        placeholder="Search foods and servings&hellip;"
-        class="search"
-        type="text"
-        @input="handleInput"
-      />
-      <div v-for="(recipe, index) in recipesList" :key="index" class="list">
-        <div class="recipe-item" @click="goToSingleRecipe(recipe.id)">
-          <div class="recipe-name">
-            {{ recipe.name }}
+    <input
+      placeholder="Search foods and servings&hellip;"
+      class="search"
+      type="text"
+      @input="handleInput"
+    />
+    <div v-for="(recipe, index) in recipesList" :key="index" class="list">
+      <div class="recipe-item" @click="goToSingleRecipe(recipe.id)">
+        <div class="recipe-name">
+          {{ recipe.name }}
+        </div>
+        <img class="recipeImage" :src="recipe.image" />
+        <div class="nutrients">
+          <template
+            v-for="(nutrient, nutrientName) in recipe.nutrients"
+            :key="nutrient.value"
+          >
+            <NutrientItem
+              :name="index === 0 ? 'Carbs' : null"
+              :value="nutrient.value + 'g'"
+              v-if="nutrient && nutrientName === 'carbs'"
+              class="carbs"
+            />
+            <NutrientItem
+              :name="index === 0 ? 'Protein' : null"
+              :value="nutrient.value + 'g'"
+              v-if="nutrient && nutrientName === 'proteins'"
+              class="protein"
+            />
+            <NutrientItem
+              :name="index === 0 ? 'Fat' : null"
+              :value="nutrient.value + 'g'"
+              v-if="nutrient && nutrientName === 'fats'"
+              class="fat"
+            />
+            <NutrientItem
+              v-if="nutrient && nutrientName === 'energy'"
+              :name="
+                index === 0
+                  ? getEnergy(nutrient.unit, nutrient.value).label
+                  : null
+              "
+              :value="round(getEnergy(nutrient.unit, nutrient.value).value)"
+              class="energy"
+            />
+          </template>
+        </div>
+        <div class="tags">
+          <div class="tag premium" v-if="recipe.isPremium">
+            <img class="trophy" src="../assets/trophy.svg" />
+            Premium
           </div>
-          <img class="recipeImage" :src="recipe.image" />
-          <div class="nutrients">
-            <template
-              v-for="(nutrient, nutrientName) in recipe.nutrients"
-              :key="nutrient.value"
-            >
-              <NutrientItem
-                :name="index === 0 ? 'Carbs' : null"
-                :value="nutrient.value + 'g'"
-                v-if="nutrient && nutrientName === 'carbs'"
-                class="carbs"
-              />
-              <NutrientItem
-                :name="index === 0 ? 'Protein' : null"
-                :value="nutrient.value + 'g'"
-                v-if="nutrient && nutrientName === 'proteins'"
-                class="protein"
-              />
-              <NutrientItem
-                :name="index === 0 ? 'Fat' : null"
-                :value="nutrient.value + 'g'"
-                v-if="nutrient && nutrientName === 'fats'"
-                class="fat"
-              />
-              <NutrientItem
-                v-if="nutrient && nutrientName === 'energy'"
-                :name="
-                  index === 0
-                    ? getEnergy(nutrient.unit, nutrient.value).label
-                    : null
-                "
-                :value="round(getEnergy(nutrient.unit, nutrient.value).value)"
-                class="energy"
-              />
-            </template>
-          </div>
-          <div class="tags">
-            <div class="tag premium" v-if="recipe.isPremium">
-              <img class="trophy" src="../assets/trophy.svg" />
-              Premium
-            </div>
-            <div class="tag" v-for="tag in recipe.tags" :key="tag">
-              {{ tag }}
-            </div>
+          <div class="tag" v-for="tag in recipe.tags" :key="tag">
+            {{ tag }}
           </div>
         </div>
       </div>
-    </template>
-    <div v-if="!recipesList.length">Unable to load recipes</div>
+    </div>
+
+    <div v-if="error">Unable to load recipes</div>
+
+    <div v-if="isLoading">Loading recipes...</div>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import NutrientItem from "@/components/NutrientItem.vue";
-import getRecipes from "@/api/getRecipes";
 import getUser from "@/api/getUser";
-import type { Recipe, Unit } from "@/types/recipe";
+import type { Unit } from "@/types/recipe";
 import type { User } from "@/types/user";
+import { useRecipes } from "@/hooks/useRecipes";
 
 export default defineComponent({
   components: {
     NutrientItem,
   },
   setup() {
-    const isFiltered = ref(false);
-    const recipes = ref<Recipe[]>([]);
-    const filteredRecipes = ref<Recipe[]>([]);
     const user = ref<User | null>(null);
-    const error = ref(false);
+
+    const {
+      recipes: recipesList,
+      isLoading,
+      error,
+      searchRecipes,
+    } = useRecipes();
 
     onMounted(async () => {
       try {
-        const recipesRes = await getRecipes();
         const userRes = await getUser();
 
-        recipes.value = recipesRes;
         user.value = userRes;
-
-        if (!recipesRes?.length) {
-          error.value = true;
-        }
       } catch (e) {
         console.error(e);
       }
-    });
-
-    const recipesList = computed(() => {
-      return isFiltered.value ? filteredRecipes.value : recipes.value;
     });
 
     const getEnergy = (recipeUnit: Unit, value: number) => {
@@ -134,14 +128,6 @@ export default defineComponent({
       return Math.round(num * p) / p;
     };
 
-    const filterRecipes = (value: string) => {
-      isFiltered.value = value !== "";
-
-      filteredRecipes.value = recipes.value.filter(({ name }) =>
-        name.includes(value)
-      );
-    };
-
     const { push } = useRouter();
 
     const goToSingleRecipe = (id: number) => {
@@ -154,19 +140,16 @@ export default defineComponent({
     const handleInput = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const value = target.value;
-      filterRecipes(value);
+      searchRecipes({ query: value });
     };
 
     return {
-      isFiltered,
-      recipes,
-      filteredRecipes,
       user,
+      isLoading,
       error,
       recipesList,
       getEnergy,
       round,
-      filterRecipes,
       goToSingleRecipe,
       handleInput,
     };
