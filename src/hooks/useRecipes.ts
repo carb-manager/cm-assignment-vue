@@ -1,9 +1,8 @@
 import { computed, onMounted, ref } from "vue";
 import type { Recipe } from "@/types/recipe";
 import { useRecipeStore } from "@/stores/recipe";
-import getUser from "@/api/getUser";
 import { recipeToRecipeDisplay } from "@/utils/recipe";
-import type { User } from "@/types/user";
+import { useUserStore } from "@/stores/user";
 
 interface RecipeFilters {
   query: string;
@@ -21,7 +20,7 @@ const filterRecipes = (recipes: Recipe[], filters: RecipeFilters): Recipe[] => {
 
 export const useRecipes = (initialFilter: RecipeFilters = { query: "" }) => {
   const store = useRecipeStore();
-  const user = ref<User | null>(null);
+  const userStore = useUserStore();
 
   const filters = ref<RecipeFilters>(initialFilter);
   const isLoading = ref(false);
@@ -29,7 +28,7 @@ export const useRecipes = (initialFilter: RecipeFilters = { query: "" }) => {
 
   const filteredRecipes = computed(() => {
     return filterRecipes(store.recipes, filters.value).map((recipe) =>
-      recipeToRecipeDisplay(recipe, user.value)
+      recipeToRecipeDisplay(recipe, userStore.user)
     );
   });
 
@@ -39,10 +38,11 @@ export const useRecipes = (initialFilter: RecipeFilters = { query: "" }) => {
     error.value = false;
     isLoading.value = true;
 
-    user.value = await getUser();
-    const success = await store.loadRecipes();
+    // we want the user first to display recipes with the right settings
+    const userSuccess = await userStore.loadUser();
+    const recipeSuccess = await store.loadRecipes();
 
-    error.value = !success;
+    error.value = !recipeSuccess && !userSuccess;
 
     isLoading.value = false;
   };
