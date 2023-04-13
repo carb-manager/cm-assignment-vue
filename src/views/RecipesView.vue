@@ -65,6 +65,11 @@
     </div>
 
     <div v-if="isLoading">Loading recipes...</div>
+
+    <div v-if="!isLoading && !error && searchValue && !recipesList.length">
+      No recipes found.
+      <span class="link-button" @click="searchValue = ''">Clear search</span>.
+    </div>
   </div>
 </template>
 
