@@ -4,7 +4,7 @@
       placeholder="Search foods and servings&hellip;"
       class="search"
       type="text"
-      @input="handleInput"
+      v-model="searchValue"
     />
     <div v-for="(recipe, index) in recipesList" :key="index" class="list">
       <div class="recipe-item" @click="goToSingleRecipe(recipe.id)">
@@ -59,14 +59,17 @@
       </div>
     </div>
 
-    <div v-if="error">Unable to load recipes</div>
+    <div v-if="error">
+      Unable to load recipes.
+      <span class="link-button" @click="retrySearch">Try again</span>.
+    </div>
 
     <div v-if="isLoading">Loading recipes...</div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import NutrientItem from "@/components/NutrientItem.vue";
 import getUser from "@/api/getUser";
@@ -137,10 +140,14 @@ export default defineComponent({
       });
     };
 
-    const handleInput = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      const value = target.value;
+    const searchValue = ref("");
+
+    watch(searchValue, (value) => {
       searchRecipes({ query: value });
+    });
+
+    const retrySearch = () => {
+      searchRecipes({ query: searchValue.value });
     };
 
     return {
@@ -148,10 +155,11 @@ export default defineComponent({
       isLoading,
       error,
       recipesList,
+      searchValue,
       getEnergy,
       round,
       goToSingleRecipe,
-      handleInput,
+      retrySearch,
     };
   },
 });
@@ -261,5 +269,15 @@ export default defineComponent({
       }
     }
   }
+}
+
+.link-button {
+  cursor: pointer;
+  color: rgb(17 24 39);
+  font-weight: 500;
+  text-decoration-line: underline;
+}
+.link-button:hover {
+  color: rgb(59 130 246);
 }
 </style>

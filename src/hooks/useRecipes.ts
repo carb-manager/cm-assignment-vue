@@ -28,10 +28,9 @@ export const useRecipes = (initialFilter: RecipeFilters = { query: "" }) => {
   });
 
   const loadRecipes = async () => {
-    // recipes already loaded
-    if (store.recipes?.length) return;
+    if (isLoading.value || store.recipes?.length) return;
 
-    console.log("loading...");
+    error.value = false;
     isLoading.value = true;
 
     const success = await store.loadRecipes();
