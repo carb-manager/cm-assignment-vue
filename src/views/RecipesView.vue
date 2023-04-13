@@ -5,7 +5,7 @@
         placeholder="Search foods and servings&hellip;"
         class="search"
         type="text"
-        @input="filterRecipes($event.target.value)"
+        @input="handleInput"
       />
       <div v-for="(recipe, index) in recipesList" :key="index" class="list">
         <div class="recipe-item" @click="goToSingleRecipe(recipe.id)">
@@ -15,31 +15,35 @@
           <img class="recipeImage" :src="recipe.image" />
           <div class="nutrients">
             <template
-              v-for="({ value, unit }, nutrientName) in recipe.nutrients"
-              :key="value"
+              v-for="(nutrient, nutrientName) in recipe.nutrients"
+              :key="nutrient.value"
             >
               <NutrientItem
                 :name="index === 0 ? 'Carbs' : null"
-                :value="value + 'g'"
-                v-if="nutrientName === 'carbs'"
+                :value="nutrient.value + 'g'"
+                v-if="nutrient && nutrientName === 'carbs'"
                 class="carbs"
               />
               <NutrientItem
                 :name="index === 0 ? 'Protein' : null"
-                :value="value + 'g'"
-                v-if="nutrientName === 'proteins'"
+                :value="nutrient.value + 'g'"
+                v-if="nutrient && nutrientName === 'proteins'"
                 class="protein"
               />
               <NutrientItem
                 :name="index === 0 ? 'Fat' : null"
-                :value="value + 'g'"
-                v-if="nutrientName === 'fats'"
+                :value="nutrient.value + 'g'"
+                v-if="nutrient && nutrientName === 'fats'"
                 class="fat"
               />
               <NutrientItem
-                v-if="nutrientName === 'energy'"
-                :name="index === 0 ? getEnergy(unit, value).label : null"
-                :value="round(getEnergy(unit, value).value)"
+                v-if="nutrient && nutrientName === 'energy'"
+                :name="
+                  index === 0
+                    ? getEnergy(nutrient.unit, nutrient.value).label
+                    : null
+                "
+                :value="round(getEnergy(nutrient.unit, nutrient.value).value)"
                 class="energy"
               />
             </template>
@@ -60,66 +64,62 @@
   </div>
 </template>
 
-<script lang="js">
-import NutrientItem from '@/components/NutrientItem.vue'
-import getRecipes from '@/api/getRecipes'
-import getUser from '@/api/getUser'
+<script lang="ts">
+import { computed, defineComponent, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import NutrientItem from "@/components/NutrientItem.vue";
+import getRecipes from "@/api/getRecipes";
+import getUser from "@/api/getUser";
+import type { Recipe, Unit } from "@/types/recipe";
+import type { User } from "@/types/user";
 
-export default {
+export default defineComponent({
   components: {
-    NutrientItem
+    NutrientItem,
   },
+  setup() {
+    const isFiltered = ref(false);
+    const recipes = ref<Recipe[]>([]);
+    const filteredRecipes = ref<Recipe[]>([]);
+    const user = ref<User | null>(null);
+    const error = ref(false);
 
-  data: () => ({
-    isFiltered: false,
-    recipes: [],
-    filteredRecipes: [],
-    user: {},
-    error: false,
-  }),
+    onMounted(async () => {
+      try {
+        const recipesRes = await getRecipes();
+        const userRes = await getUser();
 
-  async mounted () {
-    try {
-      const recipes = await getRecipes();
-      const user = await getUser();
+        recipes.value = recipesRes;
+        user.value = userRes;
 
-      this.recipes = recipes;
-      this.user = user;
-
-      if (!this.recipes.length) {
-        this.error = true;
+        if (!recipesRes?.length) {
+          error.value = true;
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e)
-    }
-  },
+    });
 
-  computed: {
-    recipesList() {
-      return this.isFiltered ? this.filteredRecipes : this.recipes;
-    },
-  },
+    const recipesList = computed(() => {
+      return isFiltered.value ? filteredRecipes.value : recipes.value;
+    });
 
-  methods: {
-    getEnergy(recipeUnit, value) {
+    const getEnergy = (recipeUnit: Unit, value: number) => {
       let label;
 
-      if (recipeUnit !== this.user.units.energy) {
-        if (recipeUnit === 'kilojoule') {
-          label = 'kCal'
+      if (recipeUnit !== user.value?.units.energy) {
+        if (recipeUnit === "kilojoule") {
+          label = "kCal";
           value = value / 4.184;
-        }
-        else {
-          label = 'kJ';
+        } else {
+          label = "kJ";
           value = value * 4.184;
         }
-      }
-      else {
-        if (recipeUnit === 'kilojoule') {
-          label = 'kJ'
-        }
-        else {
-          label = 'kCal'
+      } else {
+        if (recipeUnit === "kilojoule") {
+          label = "kJ";
+        } else {
+          label = "kCal";
         }
       }
 
@@ -127,27 +127,51 @@ export default {
         label,
         value,
       };
-    },
+    };
 
-    round(num, decimalPlaces = 2) {
+    const round = (num: number, decimalPlaces = 2) => {
       const p = Math.pow(10, decimalPlaces);
       return Math.round(num * p) / p;
-    },
+    };
 
-    filterRecipes(value) {
-      this.isFiltered = value !== '';
+    const filterRecipes = (value: string) => {
+      isFiltered.value = value !== "";
 
-      this.filteredRecipes = this.recipes.filter(({ name }) => name.includes(value))
-    },
+      filteredRecipes.value = recipes.value.filter(({ name }) =>
+        name.includes(value)
+      );
+    };
 
-    goToSingleRecipe(id) {
-      this.$router.push({
-        name: 'recipe',
-        params: { id }
-      })
-    }
-  }
-}
+    const { push } = useRouter();
+
+    const goToSingleRecipe = (id: number) => {
+      push({
+        name: "recipe",
+        params: { id },
+      });
+    };
+
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const value = target.value;
+      filterRecipes(value);
+    };
+
+    return {
+      isFiltered,
+      recipes,
+      filteredRecipes,
+      user,
+      error,
+      recipesList,
+      getEnergy,
+      round,
+      filterRecipes,
+      goToSingleRecipe,
+      handleInput,
+    };
+  },
+});
 </script>
 
 <style lang="scss">
