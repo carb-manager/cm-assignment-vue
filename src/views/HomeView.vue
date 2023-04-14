@@ -1,7 +1,7 @@
 <template>
   <div class="welcome">
     <h1 class="welcome__header">
-      Hi, <code>&#123;&#123; your_name &#125;&#125;</code>!
+      Hi, <code>&#123;&#123; Matias &#125;&#125;</code>!
     </h1>
     <p class="welcome__text">Welcome to <code>cm-assignment-vue</code>.</p>
     <p class="welcome__text">
